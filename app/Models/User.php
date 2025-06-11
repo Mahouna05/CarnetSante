@@ -65,6 +65,13 @@ class User extends Authenticatable
     {
         return $this->role === 'agent';
     }
+    /**
+     * Check if user is super-Admin
+     */
+    public function isSuper()
+    {
+        return $this->role === 'super_admin';
+    }
 
     /**
      * Get the hospital associated with the user

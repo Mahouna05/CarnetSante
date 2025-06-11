@@ -17,12 +17,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
 // Routes Authentication (gérées par Breeze)
 require __DIR__.'/auth.php';
-
+//AuthenticatedSessionController
 // Routes pour le profil (gérées par Breeze)
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
