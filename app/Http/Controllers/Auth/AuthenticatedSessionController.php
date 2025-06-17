@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use App\Models\User;
 use Illuminate\Support\Facades\Session;
+use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -40,15 +41,15 @@ class AuthenticatedSessionController extends Controller
         Session::put('user_id', $user->user_id);
 
         // Redirection basée sur le rôle avec des messages personnalisés
-        if ($user->isAdmin()) {
+        if ($user->isSuper()) {
+            Session::flash('welcome', 'Bienvenue Super Administrateur');
+            return redirect()->intended(route('super_admin.dashboard'));
+        } elseif ($user->isAdmin()) {
             Session::flash('welcome', 'Bienvenue dans votre tableau de bord administrateur');
-            return redirect()->intended('admin/dashboard');
+            return redirect()->intended(route('admin.dashboard'));
         } elseif ($user->isAgent()) {
             Session::flash('welcome', 'Bienvenue dans votre espace agent');
-            return redirect()->intended('agent/dashboard');
-        } elseif ($user->isSuper()) {
-            Session::flash('welcome', 'Bienvenue Super Administrateur');
-            return redirect()->intended('super/dashboard');
+            return redirect()->intended(route('agent.dashboard'));
         } else {
             return redirect('/');
         }
@@ -65,30 +66,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/')->with('message', 'Vous avez été déconnecté avec succès');
-    }
-    
-    /**
-     * Vérifie si l'utilisateur a accès à un autre utilisateur
-     * Cette méthode peut être utilisée dans d'autres contrôleurs
-     */
-    public static function checkAccessToUser(User $currentUser, User $targetUser): bool
-    {
-        // Le super admin a accès à tous les utilisateurs
-        if ($currentUser->isSuper()) {
-            return true;
-        }
-        
-        // Un admin a accès uniquement aux utilisateurs qu'il a créés
-        if ($currentUser->isAdmin()) {
-            return $targetUser->created_by === $currentUser->user_id;
-        }
-        
-        // Un agent n'a accès qu'à lui-même
-        if ($currentUser->isAgent()) {
-            return $currentUser->user_id === $targetUser->user_id;
-        }
-        
-        return false;
+        return redirect('/');
     }
 }

@@ -17,6 +17,10 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    protected $table = 'users'; // Nom de la table
+
+    protected $primaryKey = 'user_id'; // Clé primaire
+
     protected $fillable = [
         'name',
         'firstname',
@@ -28,6 +32,8 @@ class User extends Authenticatable
         'numero_matricule',
         'qualification',
         'date_d_ajout',
+        'failed_login_attempts',
+        'locked_until',
     ];
 
     /**
@@ -48,6 +54,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'date_d_ajout' => 'datetime',
+        'locked_until' => 'datetime',
     ];
 
     /**
@@ -65,12 +72,54 @@ class User extends Authenticatable
     {
         return $this->role === 'agent';
     }
+    
     /**
      * Check if user is super-Admin
      */
     public function isSuper()
     {
         return $this->role === 'super_admin';
+    }
+
+    /**
+     * Check if account is locked
+     */
+    public function isLocked()
+    {
+        return $this->locked_until && $this->locked_until->isFuture();
+    }
+
+    /**
+     * Increment failed login attempts
+     */
+    public function incrementFailedAttempts()
+    {
+        $this->increment('failed_login_attempts');
+        
+        if ($this->failed_login_attempts >= 5) {
+            $this->lockAccount();
+        }
+    }
+
+    /**
+     * Lock the account for 15 minutes
+     */
+    public function lockAccount()
+    {
+        $this->update([
+            'locked_until' => now()->addMinutes(15)
+        ]);
+    }
+
+    /**
+     * Reset failed login attempts
+     */
+    public function resetFailedAttempts()
+    {
+        $this->update([
+            'failed_login_attempts' => 0,
+            'locked_until' => null
+        ]);
     }
 
     /**

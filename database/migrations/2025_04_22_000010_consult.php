@@ -17,6 +17,8 @@ return new class extends Migration
             $table->id('consult_id');
             $table->string('designation');
             $table->string('description')->nullable();
+            $table->unsignedBigInteger('hospital_id');
+            $table->foreign('hospital_id')->references('hospital_id')->on('hospital')->onDelete('cascade');
             $table->timestamps();
         });
     }
